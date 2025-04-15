@@ -1,8 +1,36 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# ---------------------------------------
+# ⚙️ General para Node.js y NPM/Yarn/Pnpm
+# ---------------------------------------
+node_modules/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# dependencies
-/node_modules
-/.pnp
+# ---------------------------------------
+# 🛠️ Configuración de entorno y compilación
+# ---------------------------------------
+.env*
+!.env.example
+*.pem
+
+# ---------------------------------------
+# 💻 IDEs y sistema operativo
+# ---------------------------------------
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ---------------------------------------
+# 🧪 Testing
+# ---------------------------------------
+coverage/
+
+# ---------------------------------------
+# 📦 Yarn / PnP / Patch Files
+# ---------------------------------------
+.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -10,32 +38,24 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
+# ---------------------------------------
+# 🔧 Prisma
+# ---------------------------------------
+/prisma/migrations/
+/prisma/generated/
+/generated/
 
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
+# ---------------------------------------
+# 🔄 Next.js
+# ---------------------------------------
+.next/
+out/
+build/
 .vercel
-
-# typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ---------------------------------------
+# ⚠️ Exportaciones por frontend (opcional)
+# ---------------------------------------
+frontend/out/
