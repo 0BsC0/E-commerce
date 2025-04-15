@@ -1,38 +1,61 @@
-# Node.js
+# ---------------------------------------
+# ⚙️ General para Node.js y NPM/Yarn/Pnpm
+# ---------------------------------------
 node_modules/
-.env
-.env.local
-.env.*
-!.env.example
-
-# Prisma
-/prisma/migrations/
-/generated/
-/coverage/
-*.db
-*.db-journal
-
-# Next.js
-.next/
-out/
-
-# VSCode
-.vscode/
-
-# Logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
-# OS
+# ---------------------------------------
+# 🛠️ Configuración de entorno y compilación
+# ---------------------------------------
+.env*
+!.env.example
+*.pem
+
+# ---------------------------------------
+# 💻 IDEs y sistema operativo
+# ---------------------------------------
+.vscode/
 .DS_Store
 Thumbs.db
 
-# Editor backups
-*.swp
-*.swo
-*.bak
-*.tmp
+# ---------------------------------------
+# 🧪 Testing
+# ---------------------------------------
+coverage/
 
-# Frontend build export
+# ---------------------------------------
+# 📦 Yarn / PnP / Patch Files
+# ---------------------------------------
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# ---------------------------------------
+# 🔧 Prisma
+# ---------------------------------------
+/prisma/migrations/
+/prisma/generated/
+/generated/
+
+# ---------------------------------------
+# 🔄 Next.js
+# ---------------------------------------
+.next/
+out/
+build/
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+
+# ---------------------------------------
+# ⚠️ Exportaciones por frontend (opcional)
+# ---------------------------------------
 frontend/out/
