@@ -1,0 +1,13 @@
+# Node
+node_modules/
+.env
+.env.local
+
+# Prisma
+/prisma/migrations/
+/generated/
+/coverage/
+
+# Next.js
+.next/
+out/
