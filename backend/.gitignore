@@ -1,13 +1,38 @@
-# Node
+# Node.js
 node_modules/
 .env
 .env.local
+.env.*
+!.env.example
 
 # Prisma
 /prisma/migrations/
 /generated/
 /coverage/
+*.db
+*.db-journal
 
 # Next.js
 .next/
 out/
+
+# VSCode
+.vscode/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor backups
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# Frontend build export
+frontend/out/
