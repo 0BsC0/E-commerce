@@ -1,37 +1,95 @@
-const { PrismaClient } = require('../../generated/client'); 
+const { PrismaClient } = require('../../generated/client');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const prisma = new PrismaClient();
 
+// Registro de usuario (cliente o viverista)
 exports.register = async (req, res) => {
-  const { name, email, password } = req.body;
-  const exists = await prisma.user.findUnique({ where: { email } });
-  if (exists) return res.status(400).json({ error: 'Email ya registrado' });
-  const hashed = await bcrypt.hash(password, 10);
-  const user = await prisma.user.create({ data: { name, email, password: hashed } });
-  res.status(201).json({ message: 'Registrado correctamente' });
+  const {
+    name,
+    lastName,
+    email,
+    password,
+    role = 'customer',
+    phone,
+    address,
+    storeName,
+  } = req.body;
+
+  try {
+    // Verificar si el usuario ya existe
+    const exists = await prisma.user.findUnique({ where: { email } });
+    if (exists) return res.status(400).json({ error: 'Email ya registrado' });
+
+    // Validar campos obligatorios si es viverista
+    if (role === 'viverista') {
+      if (!lastName || !storeName || !phone || !address) {
+        return res.status(400).json({ error: 'Faltan datos obligatorios para viverista' });
+      }
+    }
+
+    // Encriptar la contraseña
+    const hashed = await bcrypt.hash(password, 10);
+
+    // Crear usuario en la base de datos
+    const newUser = await prisma.user.create({
+      data: {
+        name,
+        lastName,
+        email,
+        password: hashed,
+        role,
+        phone,
+        address,
+        storeName,
+      },
+    });
+
+    res.status(201).json({ message: 'Registrado correctamente' });
+  } catch (err) {
+    console.error('Error en registro:', err);
+    res.status(500).json({ error: 'Error al registrar el usuario' });
+  }
 };
 
+// Login de usuario
 exports.login = async (req, res) => {
   const { email, password } = req.body;
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    return res.status(401).json({ error: 'Credenciales inválidas' });
+
+  try {
+    // Buscar usuario por email
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ error: 'Credenciales inválidas' });
+    }
+
+    // Generar token JWT
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+
+    // Devolver token + datos del usuario
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+        storeName: user.storeName,
+        role: user.role,
+      },
+    });
+  } catch (err) {
+    console.error('Error en login:', err);
+    res.status(500).json({ error: 'Error en login' });
   }
-
-  const token = jwt.sign(
-    { id: user.id, email: user.email, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: '1d' }
-  );
-
-  res.json({
-    token,
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    },
-  });
 };

@@ -1,3 +1,13 @@
 import axios from './axiosInstance';
-export const login = async (credentials) => (await axios.post('/auth/login', credentials)).data;
-export const register = async (data) => (await axios.post('/auth/register', data)).data;
+
+// Iniciar sesión (login)
+export const login = async (credentials) => {
+  const res = await axios.post('/auth/login', credentials);
+  return res.data;
+};
+
+// Registrar usuario (cliente o viverista)
+export const register = async (data) => {
+  const res = await axios.post('/auth/register', data);
+  return res.data;
+};
