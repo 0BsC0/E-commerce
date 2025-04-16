@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import { AuthContext } from '@/context/AuthContext';
-import { FaUserCircle, FaShoppingCart } from 'react-icons/fa';
+import { FaUserCircle, FaShoppingCart, FaSignInAlt, FaUserPlus } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 
 export default function Navbar() {
@@ -17,9 +17,26 @@ export default function Navbar() {
       </h1>
 
       <div className="flex items-center gap-4">
-        {user && (
+        {user ? (
           <>
             <span className="text-gray-600 hidden sm:inline">Hola, {user.name}</span>
+
+            <button
+              onClick={() => router.push('/perfil')}
+              className="flex items-center gap-1 text-gray-700 hover:text-blue-600"
+            >
+              <FaUserCircle />
+              <span className="hidden sm:inline">Perfil</span>
+            </button>
+
+            <button
+              onClick={() => router.push('/carrito')}
+              className="flex items-center gap-1 text-gray-700 hover:text-blue-600"
+            >
+              <FaShoppingCart />
+              <span className="hidden sm:inline">Carrito</span>
+            </button>
+
             <button
               onClick={logout}
               className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
@@ -27,23 +44,25 @@ export default function Navbar() {
               Cerrar sesión
             </button>
           </>
+        ) : (
+          <>
+            <button
+              onClick={() => router.push('/login')}
+              className="flex items-center gap-1 text-gray-700 hover:text-blue-600"
+            >
+              <FaSignInAlt />
+              <span className="hidden sm:inline">Iniciar sesión</span>
+            </button>
+
+            <button
+              onClick={() => router.push('/register')}
+              className="flex items-center gap-1 text-gray-700 hover:text-blue-600"
+            >
+              <FaUserPlus />
+              <span className="hidden sm:inline">Registrarse</span>
+            </button>
+          </>
         )}
-
-        <button
-          onClick={() => router.push('/perfil')}
-          className="flex items-center gap-1 text-gray-700 hover:text-blue-600"
-        >
-          <FaUserCircle />
-          <span className="hidden sm:inline">Perfil</span>
-        </button>
-
-        <button
-          onClick={() => router.push('/carrito')}
-          className="flex items-center gap-1 text-gray-700 hover:text-blue-600"
-        >
-          <FaShoppingCart />
-          <span className="hidden sm:inline">Carrito</span>
-        </button>
       </div>
     </header>
   );
