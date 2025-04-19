@@ -1,13 +1,21 @@
 import axiosInstance from './axiosInstance';
 
-// Obtener perfil por ID
-export const getUserProfile = async (id) => {
-  const response = await axiosInstance.get(`/users/profile/${id}`);
+// ✅ Obtener perfil por ID (requiere token JWT)
+export const getUserProfile = async (id, token) => {
+  const response = await axiosInstance.get(`/users/profile/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return response.data;
 };
 
-// Actualizar perfil
-export const updateUserProfile = async (id, profileData) => {
-  const response = await axiosInstance.put(`/users/profile/${id}`, profileData);
+// ✅ Actualizar perfil (requiere token JWT)
+export const updateUserProfile = async (id, profileData, token) => {
+  const response = await axiosInstance.put(`/users/profile/${id}`, profileData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return response.data;
 };

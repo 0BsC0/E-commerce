@@ -2,24 +2,10 @@ const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('../../generated/client');
 const prisma = new PrismaClient();
-const jwt = require('jsonwebtoken');
 
-// Middleware para verificar token y usuario autenticado
-const verifyToken = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) return res.status(401).json({ error: 'Token requerido' });
+const verifyToken = require('../middlewares/authMiddleware');
 
-  const token = authHeader.split(' ')[1];
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (err) {
-    res.status(403).json({ error: 'Token inválido' });
-  }
-};
-
-// ✅ GET /api/users/profile/:id — obtener perfil (solo del propio usuario)
+//perfil del usuario autenticado
 router.get('/profile/:id', verifyToken, async (req, res) => {
   const { id } = req.params;
 
@@ -28,8 +14,23 @@ router.get('/profile/:id', verifyToken, async (req, res) => {
   }
 
   try {
-    const user = await prisma.user.findUnique({ where: { id: parseInt(id) } });
+    const user = await prisma.user.findUnique({
+      where: { id: parseInt(id) },
+      select: {
+        id: true,
+        name: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        address: true,
+        storeName: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
     if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
     res.json(user);
   } catch (error) {
     console.error('Error al obtener perfil:', error);
@@ -37,7 +38,7 @@ router.get('/profile/:id', verifyToken, async (req, res) => {
   }
 });
 
-// ✅ PUT /api/users/profile/:id — actualizar perfil (solo si coincide con el ID del token)
+//actualizar perfil del usuario autenticado
 router.put('/profile/:id', verifyToken, async (req, res) => {
   const { id } = req.params;
   const { name, lastName, phone, address, storeName, role } = req.body;

@@ -1,7 +1,10 @@
+// pages/register.js
 import { useState } from 'react';
 import { register } from '@/services/authService';
 import { useRouter } from 'next/router';
-import { FaLeaf, FaCheckCircle, FaExclamationTriangle, FaEye, FaEyeSlash } from 'react-icons/fa';
+import {
+  FaLeaf, FaCheckCircle, FaExclamationTriangle, FaEye, FaEyeSlash
+} from 'react-icons/fa';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -9,7 +12,9 @@ export default function RegisterPage() {
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    address: '',
+    phone: ''
   });
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -18,11 +23,11 @@ export default function RegisterPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm(prev => ({ ...prev, [name]: value }));
   };
 
   const validatePassword = (password) => {
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
     return regex.test(password);
   };
 
@@ -31,32 +36,28 @@ export default function RegisterPage() {
     setError(null);
     setSuccess(null);
 
-    if (!form.email.trim()) {
-      setError('El correo electrónico es obligatorio.');
+    const { name, email, password, confirmPassword, address, phone } = form;
+
+    if (!name || !email || !password || !confirmPassword || !address || !phone) {
+      setError('Todos los campos son obligatorios.');
       return;
     }
 
-    if (!form.name.trim()) {
-      setError('El nombre completo es obligatorio.');
+    if (!validatePassword(password)) {
+      setError('La contraseña debe tener mínimo 8 caracteres, incluyendo mayúscula, minúscula, número y símbolo.');
       return;
     }
 
-    if (form.password !== form.confirmPassword) {
+    if (password !== confirmPassword) {
       setError('Las contraseñas no coinciden.');
       return;
     }
 
-    if (!validatePassword(form.password)) {
-      setError('La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial.');
-      return;
-    }
-
     try {
-      await register(form);
+      await register({ ...form });
       setSuccess('Registro exitoso. Ahora puedes iniciar sesión.');
       setTimeout(() => router.push('/login'), 2000);
     } catch (err) {
-      console.error(err);
       if (err.response?.data?.error?.includes('registrado')) {
         setError('Este correo electrónico ya está registrado.');
       } else {
@@ -67,10 +68,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-tr from-green-50 to-white flex items-center justify-center p-6">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-10 rounded-2xl shadow-xl w-full max-w-md border border-gray-200"
-      >
+      <form onSubmit={handleSubmit} className="bg-white p-10 rounded-2xl shadow-xl w-full max-w-md border border-gray-200">
         <div className="flex items-center justify-center mb-6">
           <FaLeaf className="text-green-600 text-3xl mr-2" />
           <h2 className="text-2xl font-bold text-gray-800">Crear cuenta</h2>
@@ -89,70 +87,26 @@ export default function RegisterPage() {
         )}
 
         <div className="space-y-4">
-          <div>
-            <label htmlFor="name" className="block text-sm text-gray-700 font-medium mb-1">Nombre completo</label>
-            <input
-              id="name"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              placeholder="Luis Fernando"
-              className="w-full px-4 py-2 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder-gray-400"
-            />
+          <input type="text" name="name" placeholder="Nombre completo" value={form.name} onChange={handleChange} className="w-full p-2 border rounded" />
+          <input type="email" name="email" placeholder="Correo electrónico" value={form.email} onChange={handleChange} className="w-full p-2 border rounded" />
+          <input type="text" name="phone" placeholder="Teléfono" value={form.phone} onChange={handleChange} className="w-full p-2 border rounded" />
+          <input type="text" name="address" placeholder="Dirección" value={form.address} onChange={handleChange} className="w-full p-2 border rounded" />
+
+          <div className="relative">
+            <input type={showPassword ? "text" : "password"} name="password" placeholder="Contraseña" value={form.password} onChange={handleChange} className="w-full p-2 pr-10 border rounded" />
+            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-2 text-gray-500">
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </button>
           </div>
 
-          <div>
-            <label htmlFor="email" className="block text-sm text-gray-700 font-medium mb-1">Correo electrónico</label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              value={form.email}
-              onChange={handleChange}
-              placeholder="correo@ejemplo.com"
-              className="w-full px-4 py-2 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder-gray-400"
-            />
+          <div className="relative">
+            <input type={showConfirmPassword ? "text" : "password"} name="confirmPassword" placeholder="Confirmar contraseña" value={form.confirmPassword} onChange={handleChange} className="w-full p-2 pr-10 border rounded" />
+            <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-2 text-gray-500">
+              {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+            </button>
           </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm text-gray-700 font-medium mb-1">Contraseña</label>
-            <div className="relative">
-              <input
-                id="password"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                value={form.password}
-                onChange={handleChange}
-                className="w-full px-4 py-2 pr-10 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder-gray-400"
-              />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-2 text-gray-500">
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm text-gray-700 font-medium mb-1">Confirmar contraseña</label>
-            <div className="relative">
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type={showConfirmPassword ? 'text' : 'password'}
-                value={form.confirmPassword}
-                onChange={handleChange}
-                placeholder="Repite tu contraseña"
-                className="w-full px-4 py-2 pr-10 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder-gray-400"
-              />
-              <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-2 text-gray-500">
-                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-              </button>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold transition"
-          >
+          <button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold transition">
             Registrarse
           </button>
         </div>

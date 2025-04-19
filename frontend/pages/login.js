@@ -43,14 +43,16 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <p className="text-red-600 mb-4 text-sm text-center flex items-center justify-center gap-2 bg-red-100 px-4 py-2 rounded">
+          <div className="mb-4 px-4 py-2 bg-red-100 text-red-700 text-sm rounded flex items-center gap-2">
             <FaExclamationTriangle /> {error}
-          </p>
+          </div>
         )}
 
         <div className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm text-gray-700 font-medium mb-1">Correo electrónico</label>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              Correo electrónico
+            </label>
             <input
               id="email"
               type="email"
@@ -63,7 +65,9 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm text-gray-700 font-medium mb-1">Contraseña</label>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              Contraseña
+            </label>
             <div className="relative">
               <input
                 id="password"
@@ -82,6 +86,16 @@ export default function LoginPage() {
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
             </div>
+          </div>
+
+          <div className="text-right text-sm">
+            <button
+              type="button"
+              onClick={() => router.push('/recuperar')}
+              className="text-blue-600 hover:underline"
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
           </div>
 
           <button
