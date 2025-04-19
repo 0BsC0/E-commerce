@@ -1,6 +1,5 @@
 import { useContext } from 'react';
 import { AuthContext } from '@/context/AuthContext';
-import { FaUserCircle, FaShoppingCart, FaSignInAlt, FaUserPlus } from 'react-icons/fa';
 import { useRouter } from 'next/router';
 
 export default function Navbar() {

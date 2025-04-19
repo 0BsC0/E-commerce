@@ -17,7 +17,6 @@ exports.register = async (req, res) => {
   } = req.body;
 
   try {
-    // Verificar si el usuario ya existe
     const exists = await prisma.user.findUnique({ where: { email } });
     if (exists) return res.status(400).json({ error: 'Email ya registrado' });
 
@@ -28,10 +27,8 @@ exports.register = async (req, res) => {
       }
     }
 
-    // Encriptar la contraseña
     const hashed = await bcrypt.hash(password, 10);
 
-    // Crear usuario en la base de datos
     const newUser = await prisma.user.create({
       data: {
         name,
@@ -57,13 +54,11 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Buscar usuario por email
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
-    // Generar token JWT
     const token = jwt.sign(
       {
         id: user.id,
@@ -74,7 +69,6 @@ exports.login = async (req, res) => {
       { expiresIn: '1d' }
     );
 
-    // Devolver token + datos del usuario
     res.json({
       token,
       user: {
