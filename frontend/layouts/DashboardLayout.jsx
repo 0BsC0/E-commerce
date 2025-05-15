@@ -1,4 +1,3 @@
-// layouts/DashboardLayout.jsx
 import { useContext } from "react";
 import { AuthContext } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
@@ -8,23 +7,21 @@ export default function DashboardLayout({ children }) {
   const { user } = useContext(AuthContext);
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar solo para viveristas */}
-      {user?.role === "viverista" && (
-        <aside className="hidden md:block w-60 bg-white shadow-sm border-r">
-          <Sidebar />
-        </aside>
-      )}
+    <div className="min-h-screen flex flex-col bg-green-50 relative">
+      {/* Navbar superior */}
+      <Navbar />
 
-      <div className="flex flex-col flex-1">
-        {/* Navbar superior */}
-        <header className="shadow-sm">
-          <Navbar />
-        </header>
+      <div className="flex flex-1">
+        {/* Sidebar lateral solo para viveristas */}
+        {user?.role === "viverista" && (
+          <aside className="hidden md:block w-64 bg-white shadow-sm border-r overflow-y-auto">
+            <Sidebar />
+          </aside>
+        )}
 
-        {/* Contenido principal */}
-        <main className="flex-1 overflow-y-auto p-6">
-          {children}
+        {/* Contenido principal con scroll independiente */}
+        <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto w-full">{children}</div>
         </main>
       </div>
     </div>

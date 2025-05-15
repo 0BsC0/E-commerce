@@ -1,37 +1,73 @@
-import axiosInstance from './axiosInstance';
+import axiosInstance from "./axiosInstance";
 
-// Crear un nuevo producto asociado al viverista autenticado
+// Crear un nuevo producto (solo para viveristas autenticados)
 export const createProduct = async (productData, token) => {
-  const res = await axiosInstance.post('/products', productData, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  return res.data;
+  try {
+    const res = await axiosInstance.post("/products", productData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return res.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.error || "Error al crear el producto");
+  }
 };
 
 // Obtener todos los productos públicos
 export const getProducts = async () => {
-  const res = await axiosInstance.get('/products');
-  return res.data;
+  try {
+    const res = await axiosInstance.get("/products");
+    return res.data;
+  } catch (error) {
+    throw new Error("Error al obtener productos públicos");
+  }
 };
 
-// Obtener productos creados por un viverista autenticado
-export const getProductsByUser = async (userId, token) => {
-  const res = await axiosInstance.get(`/products/user/${userId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  return res.data;
+// Obtener productos del viverista autenticado
+export const getProductsByUser = async (token) => {
+  try {
+    const res = await axiosInstance.get("/products/my-products", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return res.data;
+  } catch (error) {
+    throw new Error("Error al obtener productos del viverista");
+  }
 };
 
-// Eliminar producto por ID (solo si es del viverista autenticado)
+// Eliminar producto por ID (si es del usuario autenticado)
 export const deleteProduct = async (productId, token) => {
-  const res = await axiosInstance.delete(`/products/${productId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  try {
+    const res = await axiosInstance.delete(`/products/${productId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return res.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.error || "Error al eliminar el producto");
+  }
+};
+
+// Actualizar un producto existente
+export const updateProduct = async (productId, updatedData, token) => {
+  try {
+    const res = await axiosInstance.put(`/products/${productId}`, updatedData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return res.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.error || "Error al actualizar el producto");
+  }
+};
+
+// Obtener productos destacados (más vendidos o recientes)
+export const getFeaturedProducts = async () => {
+  const res = await axiosInstance.get("/products/featured");
   return res.data;
 };

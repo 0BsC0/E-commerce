@@ -1,113 +1,156 @@
-// pages/register.js
-import { useState } from 'react';
-import { register } from '@/services/authService';
-import { useRouter } from 'next/router';
-import {
-  FaLeaf, FaCheckCircle, FaExclamationTriangle, FaEye, FaEyeSlash
-} from 'react-icons/fa';
+import { useState } from "react";
+import { useRouter } from "next/router";
+import { register } from "@/services/authService";
+import { FaLeaf, FaEye, FaEyeSlash } from "react-icons/fa";
+import { useToastContext } from "@/context/ToastContext";
+import { validateRegisterForm } from "@/utils/validators";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { showToast } = useToastContext();
+
   const [form, setForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    address: '',
-    phone: ''
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    address: "",
+    phone: "",
+    role: "customer",
   });
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+
+  const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
-  };
-
-  const validatePassword = (password) => {
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
-    return regex.test(password);
+    setForm((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
 
-    const { name, email, password, confirmPassword, address, phone } = form;
-
-    if (!name || !email || !password || !confirmPassword || !address || !phone) {
-      setError('Todos los campos son obligatorios.');
-      return;
-    }
-
-    if (!validatePassword(password)) {
-      setError('La contraseña debe tener mínimo 8 caracteres, incluyendo mayúscula, minúscula, número y símbolo.');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError('Las contraseñas no coinciden.');
+    const validationErrors = validateRegisterForm(form);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
 
     try {
-      await register({ ...form });
-      setSuccess('Registro exitoso. Ahora puedes iniciar sesión.');
-      setTimeout(() => router.push('/login'), 2000);
+      setLoading(true);
+      await register(form);
+      showToast("success", "Registro exitoso. Redirigiendo...");
+      setTimeout(() => router.push("/login"), 2000);
     } catch (err) {
-      if (err.response?.data?.error?.includes('registrado')) {
-        setError('Este correo electrónico ya está registrado.');
-      } else {
-        setError('Error al registrar. Verifica los datos.');
-      }
+      showToast("error", err.message || "Error al registrar. Verifica los datos.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-tr from-green-50 to-white flex items-center justify-center p-6">
-      <form onSubmit={handleSubmit} className="bg-white p-10 rounded-2xl shadow-xl w-full max-w-md border border-gray-200">
+      <form
+        onSubmit={handleSubmit}
+        noValidate
+        className="bg-white p-10 rounded-2xl shadow-xl w-full max-w-md border border-gray-200"
+      >
         <div className="flex items-center justify-center mb-6">
           <FaLeaf className="text-green-600 text-3xl mr-2" />
           <h2 className="text-2xl font-bold text-gray-800">Crear cuenta</h2>
         </div>
 
-        {error && (
-          <p className="text-red-600 mb-4 text-sm text-center flex items-center justify-center gap-2 bg-red-100 px-4 py-2 rounded">
-            <FaExclamationTriangle /> {error}
-          </p>
-        )}
-
-        {success && (
-          <p className="text-green-600 mb-4 text-sm text-center flex items-center justify-center gap-2 bg-green-100 px-4 py-2 rounded">
-            <FaCheckCircle /> {success}
-          </p>
-        )}
-
         <div className="space-y-4">
-          <input type="text" name="name" placeholder="Nombre completo" value={form.name} onChange={handleChange} className="w-full p-2 border rounded" />
-          <input type="email" name="email" placeholder="Correo electrónico" value={form.email} onChange={handleChange} className="w-full p-2 border rounded" />
-          <input type="text" name="phone" placeholder="Teléfono" value={form.phone} onChange={handleChange} className="w-full p-2 border rounded" />
-          <input type="text" name="address" placeholder="Dirección" value={form.address} onChange={handleChange} className="w-full p-2 border rounded" />
+          {[
+            { name: "name", type: "text", placeholder: "Nombres" },
+            { name: "email", type: "email", placeholder: "Correo electrónico" },
+            { name: "phone", type: "text", placeholder: "Teléfono" },
+            { name: "address", type: "text", placeholder: "Dirección" },
+          ].map(({ name, type, placeholder }) => (
+            <div key={name}>
+              <input
+                type={type}
+                name={name}
+                placeholder={placeholder}
+                value={form[name]}
+                onChange={handleChange}
+                className={`input-base ${errors[name] ? "border-red-500" : ""}`}
+                aria-invalid={!!errors[name]}
+                aria-describedby={`${name}-error`}
+              />
+              {errors[name] && (
+                <p id={`${name}-error`} className="text-sm text-red-600 mt-1">
+                  {errors[name]}
+                </p>
+              )}
+            </div>
+          ))}
 
+          {/* Contraseña */}
           <div className="relative">
-            <input type={showPassword ? "text" : "password"} name="password" placeholder="Contraseña" value={form.password} onChange={handleChange} className="w-full p-2 pr-10 border rounded" />
-            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-2 text-gray-500">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Contraseña"
+              value={form.password}
+              onChange={handleChange}
+              className={`input-base pr-10 ${errors.password ? "border-red-500" : ""}`}
+              aria-invalid={!!errors.password}
+              aria-describedby="password-error"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label="Mostrar u ocultar contraseña"
+              className="absolute right-3 top-2 text-gray-500"
+            >
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </button>
+            {errors.password && (
+              <p id="password-error" className="text-sm text-red-600 mt-1">
+                {errors.password}
+              </p>
+            )}
           </div>
 
+          {/* Confirmar contraseña */}
           <div className="relative">
-            <input type={showConfirmPassword ? "text" : "password"} name="confirmPassword" placeholder="Confirmar contraseña" value={form.confirmPassword} onChange={handleChange} className="w-full p-2 pr-10 border rounded" />
-            <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-2 text-gray-500">
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              name="confirmPassword"
+              placeholder="Confirmar contraseña"
+              value={form.confirmPassword}
+              onChange={handleChange}
+              className={`input-base pr-10 ${
+                errors.confirmPassword ? "border-red-500" : ""
+              }`}
+              aria-invalid={!!errors.confirmPassword}
+              aria-describedby="confirmPassword-error"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              aria-label="Mostrar u ocultar confirmación"
+              className="absolute right-3 top-2 text-gray-500"
+            >
               {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
             </button>
+            {errors.confirmPassword && (
+              <p id="confirmPassword-error" className="text-sm text-red-600 mt-1">
+                {errors.confirmPassword}
+              </p>
+            )}
           </div>
 
-          <button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold transition">
-            Registrarse
+          <button
+            type="submit"
+            className={`btn-primary ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
+            disabled={loading}
+          >
+            {loading ? "Registrando..." : "Registrarse"}
           </button>
         </div>
       </form>

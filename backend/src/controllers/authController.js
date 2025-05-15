@@ -2,9 +2,11 @@ const { PrismaClient } = require('../../generated/client');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
+const { v4: uuidv4 } = require('uuid');
+
 const prisma = new PrismaClient();
 
-// Registrar usuario (customer o viverista)
+// Registro de usuario (cliente o viverista)
 exports.register = async (req, res) => {
   const {
     name, lastName, email, password,
@@ -12,9 +14,6 @@ exports.register = async (req, res) => {
   } = req.body;
 
   try {
-    const exists = await prisma.user.findUnique({ where: { email } });
-    if (exists) return res.status(400).json({ error: 'Email ya registrado' });
-
     if (!name || !email || !password || !phone || !address) {
       return res.status(400).json({ error: 'Todos los campos son obligatorios' });
     }
@@ -23,34 +22,49 @@ exports.register = async (req, res) => {
       return res.status(400).json({ error: 'Faltan datos obligatorios para viverista' });
     }
 
+    const exists = await prisma.user.findUnique({ where: { email } });
+    if (exists) return res.status(400).json({ error: 'Este correo ya está registrado' });
+
     const hashed = await bcrypt.hash(password, 10);
 
     await prisma.user.create({
-      data: { name, lastName, email, password: hashed, role, phone, address, storeName }
+      data: {
+        name,
+        lastName,
+        email,
+        password: hashed,
+        role,
+        phone,
+        address,
+        storeName
+      }
     });
 
-    res.status(201).json({ message: 'Registrado correctamente' });
+    res.status(201).json({ message: 'Usuario registrado correctamente' });
   } catch (err) {
     console.error('Error en registro:', err);
-    res.status(500).json({ error: 'Error al registrar el usuario' });
+    res.status(500).json({ error: 'Error interno al registrar el usuario' });
   }
 };
 
-// Login de usuario
+// Inicio de sesión
 exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ error: 'Credenciales inválidas' });
+      return res.status(401).json({ error: 'Correo o contraseña incorrectos' });
     }
 
-    const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '1d' }
-    );
+    const tokenPayload = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      sessionId: Date.now().toString()
+    };
+
+    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET);
 
     res.json({
       token,
@@ -62,12 +76,12 @@ exports.login = async (req, res) => {
         phone: user.phone,
         address: user.address,
         storeName: user.storeName,
-        role: user.role,
-      },
+        role: user.role
+      }
     });
   } catch (err) {
     console.error('Error en login:', err);
-    res.status(500).json({ error: 'Error en login' });
+    res.status(500).json({ error: 'Error interno al iniciar sesión' });
   }
 };
 
@@ -77,9 +91,22 @@ exports.recuperarPassword = async (req, res) => {
 
   try {
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+    if (!user) return res.status(404).json({ error: 'Este correo no está registrado' });
 
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '15m' });
+    await prisma.passwordResetToken.deleteMany({ where: { userId: user.id } });
+
+    const rawToken = uuidv4();
+    const jwtToken = jwt.sign({ id: user.id, raw: rawToken }, process.env.JWT_SECRET, { expiresIn: '15m' });
+
+    await prisma.passwordResetToken.create({
+      data: {
+        token: rawToken,
+        userId: user.id,
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000)
+      }
+    });
+
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${jwtToken}`;
 
     const transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
@@ -87,11 +114,9 @@ exports.recuperarPassword = async (req, res) => {
       secure: true,
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
+        pass: process.env.EMAIL_PASS
+      }
     });
-
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
     await transporter.sendMail({
       from: 'OrquideaViva <no-reply@orquideaviva.com>',
@@ -101,18 +126,18 @@ exports.recuperarPassword = async (req, res) => {
         <p>Hola ${user.name},</p>
         <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
         <a href="${resetUrl}" target="_blank">${resetUrl}</a>
-        <p>Este enlace expirará en 15 minutos.</p>
-      `,
+        <p><strong>Este enlace expirará en 15 minutos.</strong></p>
+      `
     });
 
-    res.json({ message: 'Enlace de recuperación enviado al correo.' });
+    res.json({ message: '📩 Enlace de recuperación enviado al correo.' });
   } catch (err) {
-    console.error('Error en recuperación:', err);
-    res.status(500).json({ error: 'No se pudo enviar el correo' });
+    console.error('Error en recuperación de contraseña:', err);
+    res.status(500).json({ error: 'No se pudo enviar el correo de recuperación' });
   }
 };
 
-// Resetear contraseña desde token
+// Restablecer contraseña con token
 exports.resetPassword = async (req, res) => {
   const { token, newPassword } = req.body;
 
@@ -122,14 +147,28 @@ exports.resetPassword = async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const rawToken = decoded.raw;
+
+    const validToken = await prisma.passwordResetToken.findFirst({
+      where: {
+        token: rawToken,
+        userId: decoded.id,
+        expiresAt: { gt: new Date() }
+      }
+    });
+
+    if (!validToken) return res.status(400).json({ error: 'Token inválido o expirado' });
+
     const hashed = await bcrypt.hash(newPassword, 10);
 
     await prisma.user.update({
       where: { id: decoded.id },
-      data: { password: hashed },
+      data: { password: hashed }
     });
 
-    res.json({ message: 'Contraseña actualizada correctamente' });
+    await prisma.passwordResetToken.delete({ where: { id: validToken.id } });
+
+    res.json({ message: '✅ Contraseña actualizada correctamente' });
   } catch (err) {
     console.error('Error al restablecer contraseña:', err);
     res.status(400).json({ error: 'Token inválido o expirado' });

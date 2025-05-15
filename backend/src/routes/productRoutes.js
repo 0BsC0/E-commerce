@@ -1,85 +1,38 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('../../generated/client');
-const prisma = new PrismaClient();
+const verifyToken = require('../middlewares/authMiddleware');
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
 
-const verifyToken = require('../middlewares/authMiddleware'); 
+const {
+  getAllProducts,
+  getProductById,
+  getMyProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  getFeaturedProducts
+} = require('../controllers/productController');
 
-//todos los productos públicos
-router.get('/', async (req, res) => {
-  try {
-    const products = await prisma.product.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
-    res.json(products);
-  } catch (error) {
-    console.error('Error al obtener productos:', error);
-    res.status(500).json({ error: 'Error al obtener productos' });
-  }
-});
+// Obtener todos los productos públicos
+router.get('/', getAllProducts);
 
-//productos del viverista autenticado
-router.get('/user/:userId', verifyToken, async (req, res) => {
-  const { userId } = req.params;
+// Obtener productos destacados (más vendidos o recientes)
+router.get('/featured', getFeaturedProducts);
 
-  if (parseInt(userId) !== req.user.id) {
-    return res.status(403).json({ error: 'No autorizado para ver estos productos' });
-  }
+// Obtener productos del viverista autenticado
+router.get('/my-products', verifyToken, getMyProducts);
 
-  try {
-    const products = await prisma.product.findMany({
-      where: { userId: parseInt(userId) },
-      orderBy: { createdAt: 'desc' },
-    });
-    res.json(products);
-  } catch (error) {
-    console.error('Error al obtener productos del usuario:', error);
-    res.status(500).json({ error: 'Error al obtener productos del usuario' });
-  }
-});
+// Obtener un producto por ID
+router.get('/:id', getProductById);
 
-//producto nuevo (solo viveristas)
-router.post('/', verifyToken, async (req, res) => {
-  const { name, description, price, imageUrl, category } = req.body;
+// Crear producto (solo viveristas)
+router.post('/', verifyToken, createProduct);
 
-  try {
-    const newProduct = await prisma.product.create({
-      data: {
-        name,
-        description,
-        price: parseFloat(price),
-        imageUrl,
-        category,
-        userId: req.user.id,
-      },
-    });
+// Actualizar producto (solo dueño viverista)
+router.put('/:id', verifyToken, updateProduct);
 
-    res.status(201).json(newProduct);
-  } catch (error) {
-    console.error('Error al crear producto:', error);
-    res.status(500).json({ error: 'Error al crear producto' });
-  }
-});
-
-//DELETE producto del viverista autenticado
-router.delete('/:id', verifyToken, async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const product = await prisma.product.findUnique({
-      where: { id: parseInt(id) },
-    });
-
-    if (!product || product.userId !== req.user.id) {
-      return res.status(403).json({ error: 'No autorizado para eliminar este producto' });
-    }
-
-    await prisma.product.delete({ where: { id: parseInt(id) } });
-    res.json({ message: 'Producto eliminado correctamente' });
-  } catch (error) {
-    console.error('Error al eliminar producto:', error);
-    res.status(500).json({ error: 'Error al eliminar producto' });
-  }
-});
+// Eliminar producto (solo dueño viverista)
+router.delete('/:id', verifyToken, deleteProduct);
 
 module.exports = router;

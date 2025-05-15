@@ -1,18 +1,27 @@
 const express = require('express');
 const router = express.Router();
-const { register, login } = require('../controllers/authController');
-const { recuperarPassword, resetPassword } = require('../controllers/resetPasswordController');
 
-// Registrar un nuevo usuario
+const {
+  register,
+  login,
+  recuperarPassword,
+  resetPassword
+} = require('../controllers/authController');
+
+//Registro de nuevo usuario
+//Body: { name, lastName?, email, password, phone, address, role?, storeName? }
 router.post('/register', register);
 
-// Iniciar sesión
+//Inicio de sesión
+//Body: { email, password }
 router.post('/login', login);
 
-// Solicitar recuperación de contraseña 
+//Enviar enlace para restablecer contraseña
+//Body: { email }
 router.post('/recuperar', recuperarPassword);
 
-// Restablecer contraseña 
+//Restablecer contraseña usando token
+//Body: { token, newPassword }
 router.post('/reset-password', resetPassword);
 
 module.exports = router;

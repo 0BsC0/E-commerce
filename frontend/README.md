@@ -1,40 +1,155 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
 
-## Getting Started
+# 🌿 OrquideaViva.com – E-commerce para Viveristas
 
-First, run the development server:
+OrquideaViva es una plataforma de comercio electrónico pensada para viveros colombianos en la ciudad de Fusagasugá que desean digitalizar su oferta y conectar con nuevos compradores.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## 📦 Estructura del proyecto
+
+```
+orquideaviva/
+├── backend/              # Express + Prisma API
+│   ├── config/
+│   ├── controllers/
+│   ├── middlewares/
+│   ├── routes/
+│   │   ├── auth/
+│   ├── services/
+│   ├── utils/
+│   └── index.js
+├── frontend/             # Next.js + Tailwind UI
+│   ├── components/
+│   │   ├── Products/
+│   │   ├── Perfil/
+│   │   ├── Orders/
+│   │   └── ui/
+│   ├── context/
+│   ├── hooks/
+│   ├── layouts/
+│   ├── pages/
+│   ├── public/
+│   ├── services/
+│   ├── styles/
+│   └── utils/
+├── prisma/               
+├── .env.example          
+├── .gitignore
+├── package.json
+└── README.md
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+## 🚀 Comandos de desarrollo
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+### 🔧 Backend (Express.js)
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+```bash
+# Instalación
+cd backend
+npm install
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Iniciar servidor (dev)
+npm run dev
 
-## Learn More
+# Generar cliente Prisma (después de modificar schema)
+npx prisma generate
 
-To learn more about Next.js, take a look at the following resources:
+# Migraciones
+npx prisma migrate dev --name init
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+### 💻 Frontend (Next.js)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+# Instalación
+cd frontend
+npm install
 
-## Deploy on Vercel
+# Servidor local
+npm run dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+## 🔑 Variables de entorno
+
+### 📁 backend/.env.example
+
+```env
+DATABASE_URL=postgresql://usuario:contraseña@host:puerto/db
+JWT_SECRET=clave_super_secreta
+PORT=5000
+
+EMAIL_USER=correo@dominio.com
+EMAIL_PASS=clave_correo
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=465
+
+CLOUDINARY_CLOUD_NAME=tu_cloud_name
+CLOUDINARY_API_KEY=1234567890
+CLOUDINARY_API_SECRET=supersecret
+FRONTEND_URL=http://localhost:3000
+```
+
+### 📁 frontend/.env.local
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
+```
+
+---
+
+## ✅ Funcionalidades
+
+### Clientes
+
+- Registro / Login
+- Carrito de compras
+- Recuperación de contraseña
+- Historial de órdenes
+
+### Viveristas
+
+- Crear productos
+- Ver pedidos recibidos
+- Cambiar estado de órdenes
+- Panel privado de gestión
+
+---
+
+## 🛠️ Tecnologías usadas
+
+### Backend
+
+- Node.js + Express
+- PostgreSQL + Prisma ORM
+- JWT + bcrypt
+- Nodemailer (Gmail SMTP)
+- Cloudinary SDK
+
+### Frontend
+
+- Next.js + React
+- Tailwind CSS + Context API
+- Toast global personalizado
+- Axios + servicios modulares
+- Cloudinary para imágenes
+
+---
+
+## 📤 Despliegue sugerido
+
+- **Frontend:** Vercel (Next.js)
+- **Backend:** Railway / Render / Fly.io
+- **DB:** Railway PostgreSQL / Supabase
+- **Imágenes:** Cloudinary
+
+---
+
+## 📎 Contacto / soporte
+
+Este proyecto fue desarrollado como opción de grado por estudiantes de **Ingeniería de Sistemas – Universidad de Cundinamarca, sede Fusagasugá**.
+
+📫 Para soporte técnico o despliegue, contactar a los desarrolladores registrados en este repositorio.

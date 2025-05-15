@@ -1,6 +1,6 @@
-# ---------------------------------------
-# ⚙️ General para Node.js y NPM/Yarn/Pnpm
-# ---------------------------------------
+# -------------------------
+# Node / NPM / Yarn
+# -------------------------
 node_modules/
 *.log
 npm-debug.log*
@@ -8,46 +8,44 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# ---------------------------------------
-# 🛠️ Configuración de entorno y compilación
-# ---------------------------------------
-.env*
+# -------------------------
+# Entornos y secretos
+# -------------------------
+.env
+.env.local
+.env.development
+.env.production
 !.env.example
 *.pem
 
-# ---------------------------------------
-# 💻 IDEs y sistema operativo
-# ---------------------------------------
+# -------------------------
+# IDEs / Sistema
+# -------------------------
 .vscode/
+.idea/
 .DS_Store
 Thumbs.db
 
-# ---------------------------------------
-# 🧪 Testing
-# ---------------------------------------
+# -------------------------
+# Testing / Coverage
+# -------------------------
 coverage/
+test-output/
+jest-html-reporters-*
 
-# ---------------------------------------
-# 📦 Yarn / PnP / Patch Files
-# ---------------------------------------
-.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# ---------------------------------------
-# 🔧 Prisma
-# ---------------------------------------
+# -------------------------
+# Prisma
+# -------------------------
 /prisma/migrations/
 /prisma/generated/
 /generated/
+/dev.db
+/dev.sqlite
+*.db-journal
 
-# ---------------------------------------
-# 🔄 Next.js
-# ---------------------------------------
+# -------------------------
+# Next.js (frontend)
+# -------------------------
 .next/
 out/
 build/
@@ -55,7 +53,20 @@ build/
 *.tsbuildinfo
 next-env.d.ts
 
-# ---------------------------------------
-# ⚠️ Exportaciones por frontend (opcional)
-# ---------------------------------------
-frontend/out/
+# -------------------------
+# Tailwind cache
+# -------------------------
+.tailwind-cache/
+
+# -------------------------
+# Railway / Vercel
+# -------------------------
+.railway/
+
+# -------------------------
+# Archivos exportados
+# -------------------------
+*.zip
+*.tar
+*.gz
+*.tgz

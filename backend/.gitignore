@@ -9,9 +9,12 @@ yarn-error.log*
 pnpm-debug.log*
 
 # ---------------------------------------
-# 🛠️ Configuración de entorno y compilación
+# 🛠️ Configuración de entorno y secretos
 # ---------------------------------------
-.env*
+.env
+.env.local
+.env.development
+.env.production
 !.env.example
 *.pem
 
@@ -19,6 +22,7 @@ pnpm-debug.log*
 # 💻 IDEs y sistema operativo
 # ---------------------------------------
 .vscode/
+.idea/
 .DS_Store
 Thumbs.db
 
@@ -28,8 +32,16 @@ Thumbs.db
 coverage/
 
 # ---------------------------------------
-# 📦 Yarn / PnP / Patch Files
+# 🔧 Prisma
+/prisma/migrations/
+/prisma/generated/
+/generated/
+/dev.db
+/dev.sqlite
+*.db-journal
+
 # ---------------------------------------
+# 🧵 Yarn PnP (si aplica)
 .pnp
 .pnp.*
 .yarn/*
@@ -39,23 +51,10 @@ coverage/
 !.yarn/versions
 
 # ---------------------------------------
-# 🔧 Prisma
+# Archivos exportados / temporales
 # ---------------------------------------
-/prisma/migrations/
-/prisma/generated/
-/generated/
+*.zip
+*.tar
+*.gz
+*.tgz
 
-# ---------------------------------------
-# 🔄 Next.js
-# ---------------------------------------
-.next/
-out/
-build/
-.vercel
-*.tsbuildinfo
-next-env.d.ts
-
-# ---------------------------------------
-# ⚠️ Exportaciones por frontend (opcional)
-# ---------------------------------------
-frontend/out/

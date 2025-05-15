@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { FaKey, FaExclamationTriangle, FaCheckCircle } from "react-icons/fa";
+import { FaKey } from "react-icons/fa";
+import { useToastContext } from "@/context/ToastContext";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
   const [token, setToken] = useState(null);
-
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const { showToast } = useToastContext();
 
   useEffect(() => {
     if (router.isReady && router.query.token) {
@@ -19,27 +19,19 @@ export default function ResetPasswordPage() {
   }, [router.isReady, router.query.token]);
 
   const validatePassword = (pwd) => {
-    const regex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
     return regex.test(pwd);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
 
-    if (!token) {
-      return setError("Token inválido o ausente.");
-    }
-
-    if (newPassword !== confirmPassword) {
-      return setError("Las contraseñas no coinciden.");
-    }
-
+    if (!token) return showToast("error", "El enlace no contiene un token válido.");
+    if (newPassword !== confirmPassword) return showToast("error", "Las contraseñas no coinciden.");
     if (!validatePassword(newPassword)) {
-      return setError(
-        "La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un símbolo."
+      return showToast(
+        "error",
+        "La contraseña debe tener mínimo 8 caracteres, incluyendo mayúscula, minúscula, número y símbolo."
       );
     }
 
@@ -52,13 +44,13 @@ export default function ResetPasswordPage() {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error desconocido");
+      if (!res.ok) throw new Error(data.error || "Error al restablecer la contraseña");
 
-      setSuccess("Contraseña actualizada correctamente.");
+      showToast("success", "Contraseña actualizada correctamente.");
       setTimeout(() => router.push("/login"), 2500);
     } catch (err) {
       console.error(err);
-      setError(err.message);
+      showToast("error", err.message || "No se pudo actualizar la contraseña.");
     } finally {
       setLoading(false);
     }
@@ -75,42 +67,27 @@ export default function ResetPasswordPage() {
           <h2 className="text-2xl font-bold text-gray-800">Restablecer contraseña</h2>
         </div>
 
-        {error && (
-          <p className="text-red-600 mb-4 text-sm flex items-center gap-2 bg-red-100 px-4 py-2 rounded">
-            <FaExclamationTriangle /> {error}
-          </p>
-        )}
-        {success && (
-          <p className="text-green-600 mb-4 text-sm flex items-center gap-2 bg-green-100 px-4 py-2 rounded">
-            <FaCheckCircle /> {success}
-          </p>
-        )}
-
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Nueva contraseña
-            </label>
+            <label className="label">Nueva contraseña</label>
             <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="Tu nueva contraseña"
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+              className="input-base"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Confirmar contraseña
-            </label>
+            <label className="label">Confirmar contraseña</label>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Repite la contraseña"
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+              className="input-base"
               required
             />
           </div>
@@ -118,9 +95,7 @@ export default function ResetPasswordPage() {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold transition ${
-              loading ? "opacity-70 cursor-not-allowed" : ""
-            }`}
+            className={`btn-primary ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
           >
             {loading ? "Actualizando..." : "Restablecer contraseña"}
           </button>
