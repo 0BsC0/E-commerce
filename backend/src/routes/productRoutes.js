@@ -11,8 +11,12 @@ const {
   createProduct,
   updateProduct,
   deleteProduct,
-  getFeaturedProducts
+  getFeaturedProducts,
+  getCategories
 } = require('../controllers/productController');
+
+// Obtener productos por categoria
+router.get('/categories', getCategories);
 
 // Obtener todos los productos públicos
 router.get('/', getAllProducts);

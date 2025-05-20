@@ -26,7 +26,15 @@ export default function LoginPage() {
     }
 
     try {
-      const data = await login({ email, password });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Correo o contraseña incorrectos");
+
       setAuth(data);
       showToast("success", "Sesión iniciada correctamente");
       router.push("/");

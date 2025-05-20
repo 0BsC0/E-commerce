@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const { v4: uuidv4 } = require('uuid');
+const { sendNotificacion } = require('../services/emailService');
 
 const prisma = new PrismaClient();
 
@@ -38,6 +39,12 @@ exports.register = async (req, res) => {
         address,
         storeName
       }
+    });
+
+    await sendNotificacion({
+      to: email,
+      subject: "🎉 Bienvenido a OrquideaViva",
+      html: `<p>Hola ${name},</p><p>Tu cuenta ha sido creada exitosamente. ¡Gracias por unirte!</p>`
     });
 
     res.status(201).json({ message: 'Usuario registrado correctamente' });
@@ -108,6 +115,9 @@ exports.recuperarPassword = async (req, res) => {
 
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${jwtToken}`;
 
+    console.log("📧 Intentando enviar correo a:", email);
+    console.log("🔗 Enlace de recuperación:", resetUrl);
+
     const transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
       port: parseInt(process.env.EMAIL_PORT),
@@ -118,19 +128,26 @@ exports.recuperarPassword = async (req, res) => {
       }
     });
 
-    await transporter.sendMail({
-      from: 'OrquideaViva <no-reply@orquideaviva.com>',
-      to: email,
-      subject: 'Recuperación de contraseña',
-      html: `
-        <p>Hola ${user.name},</p>
-        <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
-        <a href="${resetUrl}" target="_blank">${resetUrl}</a>
-        <p><strong>Este enlace expirará en 15 minutos.</strong></p>
-      `
-    });
+    try {
+      await transporter.sendMail({
+        from: `OrquideaViva <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: 'Recuperación de contraseña',
+        html: `
+          <p>Hola ${user.name},</p>
+          <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
+          <a href="${resetUrl}" target="_blank">${resetUrl}</a>
+          <p><strong>Este enlace expirará en 15 minutos.</strong></p>
+        `
+      });
 
-    res.json({ message: '📩 Enlace de recuperación enviado al correo.' });
+      console.log("✅ Correo enviado con éxito");
+      res.json({ message: '📩 Enlace de recuperación enviado al correo.' });
+    } catch (error) {
+      console.error("❌ Error al enviar el correo:", error);
+      return res.status(500).json({ error: 'Fallo al enviar el correo. Intenta más tarde.' });
+    }
+
   } catch (err) {
     console.error('Error en recuperación de contraseña:', err);
     res.status(500).json({ error: 'No se pudo enviar el correo de recuperación' });

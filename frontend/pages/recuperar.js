@@ -19,7 +19,7 @@ export default function RecuperarContrasena() {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/recuperar", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/recuperar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

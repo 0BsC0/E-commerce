@@ -15,14 +15,16 @@ export const createProduct = async (productData, token) => {
 };
 
 // Obtener todos los productos públicos
-export const getProducts = async () => {
+export const getProducts = async (filters = {}) => {
   try {
-    const res = await axiosInstance.get("/products");
+    const params = new URLSearchParams(filters).toString();
+    const res = await axiosInstance.get(`/products${params ? `?${params}` : ''}`);
     return res.data;
   } catch (error) {
     throw new Error("Error al obtener productos públicos");
   }
 };
+
 
 // Obtener productos del viverista autenticado
 export const getProductsByUser = async (token) => {
@@ -69,5 +71,11 @@ export const updateProduct = async (productId, updatedData, token) => {
 // Obtener productos destacados (más vendidos o recientes)
 export const getFeaturedProducts = async () => {
   const res = await axiosInstance.get("/products/featured");
+  return res.data;
+};
+
+// Obtener productos por categoria
+export const getCategories = async () => {
+  const res = await axiosInstance.get("/products/categories");
   return res.data;
 };

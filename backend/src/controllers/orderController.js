@@ -1,4 +1,5 @@
 const { PrismaClient } = require('../../generated/client');
+const { sendNotificacion } = require('../services/emailService');
 const prisma = new PrismaClient();
 
 // Crear una orden a partir del carrito
@@ -74,6 +75,20 @@ exports.createOrderFromCart = async (req, res) => {
 
     // Vaciar carrito
     await prisma.cartItem.deleteMany({ where: { userId: req.user.id } });
+
+    // Enviar notificación al usuario
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+
+    await sendNotificacion({
+      to: user.email,
+      subject: "🛒 Confirmación de tu compra en OrquideaViva",
+      html: `
+        <p>Hola ${user.name},</p>
+        <p>Gracias por tu compra. Tu orden ha sido confirmada exitosamente.</p>
+        <p>Total: <strong>$${total.toLocaleString()}</strong></p>
+        <p>Revisa el historial de tus pedidos desde tu cuenta.</p>
+      `
+    });
 
     res.status(201).json({ message: 'Orden creada exitosamente', order: newOrder });
   } catch (error) {

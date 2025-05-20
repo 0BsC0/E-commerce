@@ -1,13 +1,43 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
+import { useRouter } from "next/router";
 import Slider from "react-slick";
 import { getFeaturedProducts } from "@/services/productService";
 import { useToastContext } from "@/context/ToastContext";
-import { useRouter } from "next/router";
+import { AuthContext } from "@/context/AuthContext";
+import ProductCardCompact from "@/components/ProductCardCompact";
+import { FaChevronRight } from "react-icons/fa";
+
+function NextArrow(props) {
+  const { className, style, onClick } = props;
+  return (
+    <div
+      className={className}
+      style={{
+        ...style,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "#4CAF50",
+        borderRadius: "50%",
+        width: "35px",
+        height: "35px",
+        right: "-15px",
+        zIndex: 1,
+      }}
+      onClick={onClick}
+    >
+      <FaChevronRight color="#fff" />
+    </div>
+  );
+}
 
 export default function FeaturedProductsSlider() {
   const [products, setProducts] = useState([]);
   const { showToast } = useToastContext();
+  const { user } = useContext(AuthContext);
   const router = useRouter();
+
+  const isViverista = user?.role === "viverista";
 
   useEffect(() => {
     getFeaturedProducts()
@@ -18,15 +48,28 @@ export default function FeaturedProductsSlider() {
       });
   }, []);
 
-  if (!products.length) return null;
+  if (!products.length || !router.isReady) return null;
 
   const settings = {
-    dots: true,
-    infinite: false,
-    speed: 600,
-    slidesToShow: 3,
+    dots: false,
+    infinite: products.length > 5,
+    speed: 500,
+    centerMode: false,
+    variableWidth: false,
+    slidesToShow: isViverista ? 3 : 4, 
     slidesToScroll: 1,
+    nextArrow: <NextArrow />,
+    arrows: true,
+    autoplay: products.length > 5,
+    autoplaySpeed: 3500,
+    pauseOnHover: true,
     responsive: [
+      {
+        breakpoint: 1280,
+        settings: {
+          slidesToShow: isViverista ? 3 : 4,
+        },
+      },
       {
         breakpoint: 1024,
         settings: {
@@ -34,7 +77,7 @@ export default function FeaturedProductsSlider() {
         },
       },
       {
-        breakpoint: 640,
+        breakpoint: 768,
         settings: {
           slidesToShow: 1,
         },
@@ -43,43 +86,18 @@ export default function FeaturedProductsSlider() {
   };
 
   return (
-    <section className="relative rounded-3xl shadow-2xl px-8 py-12 border border-green-300 bg-gradient-to-br from-green-200 via-green-50 to-green-100">
-      <div className="relative z-10">
-        <h2 className="text-3xl font-bold text-green-900 text-center mb-10 tracking-tight">
-          🌿 Productos Destacados
-        </h2>
+    <section className="rounded-3xl shadow-2xl px-0 py-4 border border-green-300 bg-gradient-to-br from-green-200 via-green-50 to-green-100">
+      <h2 className="text-2xl font-bold text-green-900 text-left mb-8 tracking-tight px-4">
+        🌿 Productos Destacados
+      </h2>
 
-        <Slider {...settings}>
-          {products.map((product) => (
-            <div
-              key={product.id}
-              className="px-3 cursor-pointer"
-              onClick={() => router.push(`/producto/${product.id}`)}
-            >
-              <div className="group bg-white rounded-xl border border-gray-200 shadow-md hover:shadow-2xl hover:border-green-400 transition-all duration-300 overflow-hidden">
-                <div className="overflow-hidden">
-                  <img
-                    src={`${product.imageUrl}?q_auto,f_auto,w_400,h_200,c_fill`}
-                    alt={product.name}
-                    className="w-full h-48 object-cover transform group-hover:scale-105 transition-transform duration-500 ease-in-out"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold text-gray-800 truncate group-hover:text-green-800 transition-colors duration-300">
-                    {product.name}
-                  </h3>
-                  <p className="text-sm text-gray-500 line-clamp-2 mb-2">
-                    {product.description || "Sin descripción"}
-                  </p>
-                  <p className="text-green-700 font-bold text-base group-hover:text-green-900 transition-colors duration-300">
-                    ${parseFloat(product.price).toLocaleString("es-CO")}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </Slider>
-      </div>
+      <Slider {...settings} className="mx-auto px-4">
+        {products.map((product) => (
+          <div key={product.id} className="px-2">
+            <ProductCardCompact product={product} />
+          </div>
+        ))}
+      </Slider>
     </section>
   );
 }

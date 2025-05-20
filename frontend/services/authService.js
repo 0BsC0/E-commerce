@@ -22,7 +22,7 @@ export const register = async (data) => {
   }
 };
 
-//Cerrar sesión localmente (por si lo usas desde aquí)
+//Cerrar sesión localmente 
 export const logout = () => {
   localStorage.removeItem("token");
   localStorage.removeItem("user");

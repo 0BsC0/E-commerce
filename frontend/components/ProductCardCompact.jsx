@@ -5,7 +5,7 @@ import { AuthContext } from "@/context/AuthContext";
 import { useCartContext } from "@/context/CartContext";
 import { useToastContext } from "@/context/ToastContext";
 
-export default function ProductCard({ product, onDelete }) {
+export default function ProductCardCompact({ product, onDelete }) {
   const { imageUrl, name, description, price, category, id, stock } = product;
   const router = useRouter();
   const { user } = useContext(AuthContext);
@@ -37,30 +37,30 @@ export default function ProductCard({ product, onDelete }) {
   };
 
   return (
-    <div className="w-full max-w-[300px] mx-auto bg-white rounded-2xl border border-gray-200 overflow-hidden flex flex-col shadow-md hover:shadow-lg transition-all duration-300 group">
+    <div className="w-[240px] bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col shadow-md hover:shadow-lg transition-all duration-300 group">
       {/* Imagen */}
-      <div className="relative w-full aspect-[4/3] overflow-hidden bg-gray-100">
+      <div className="relative w-full h-[140px] overflow-hidden bg-gray-100">
         <img
-          src={isValidImage ? `${imageUrl}?q_auto,f_auto,w_500,c_fill` : "/placeholder.jpg"}
+          src={isValidImage ? `${imageUrl}?q_auto,f_auto,w_400,c_fill` : "/placeholder.jpg"}
           alt={name}
           className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
           loading="lazy"
         />
         {isOutOfStock && (
-          <span className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded shadow">
+          <span className="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow">
             Agotado
           </span>
         )}
       </div>
 
       {/* Contenido */}
-      <div className="p-4 flex flex-col gap-3">
-        <h3 className="text-base font-semibold text-gray-800 truncate" title={name}>
+      <div className="p-3 flex flex-col gap-2">
+        <h3 className="text-sm font-semibold text-gray-800 truncate" title={name}>
           {name || "Producto sin nombre"}
         </h3>
 
         <div className="flex justify-between items-center">
-          <span className="text-xs font-medium bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full capitalize">
+          <span className="text-[11px] font-medium bg-emerald-100 text-emerald-700 px-2 py-[2px] rounded-full capitalize">
             {category || "General"}
           </span>
           <span className="text-sm font-bold text-green-700 tracking-tight">
@@ -68,10 +68,10 @@ export default function ProductCard({ product, onDelete }) {
           </span>
         </div>
 
-        <p className="text-sm text-gray-500 leading-snug">{description}</p>
+        <p className="text-xs text-gray-500 leading-snug line-clamp-2">{description}</p>
 
-        <div className="flex justify-between items-center mt-2">
-          <p className={`text-sm font-medium ${isOutOfStock ? "text-red-600" : "text-gray-600"}`}>
+        <div className="flex justify-between items-center mt-1">
+          <p className={`text-xs font-medium ${isOutOfStock ? "text-red-600" : "text-gray-600"}`}>
             Stock: {stock}
           </p>
 
@@ -79,7 +79,7 @@ export default function ProductCard({ product, onDelete }) {
             <div className="flex gap-2">
               <button
                 onClick={() => router.push(`/admin/products/edit/${id}`)}
-                className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
+                className="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1"
                 title="Editar producto"
               >
                 <FaEdit />
@@ -87,7 +87,7 @@ export default function ProductCard({ product, onDelete }) {
               {onDelete && (
                 <button
                   onClick={() => onDelete(id)}
-                  className="text-red-600 hover:text-red-800 text-sm flex items-center gap-1"
+                  className="text-red-600 hover:text-red-800 text-xs flex items-center gap-1"
                   title="Eliminar producto"
                 >
                   <FaTrash />
@@ -97,7 +97,7 @@ export default function ProductCard({ product, onDelete }) {
           ) : (
             <button
               onClick={handleAddToCart}
-              className={`bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-full flex items-center gap-2 transition ${
+              className={`bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-2 transition ${
                 isOutOfStock ? "opacity-50 cursor-not-allowed" : ""
               }`}
               disabled={isOutOfStock}

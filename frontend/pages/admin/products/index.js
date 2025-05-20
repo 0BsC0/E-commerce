@@ -6,6 +6,8 @@ import { getProductsByUser, deleteProduct } from "@/services/productService";
 import ProductCard from "@/components/ProductCard";
 import AddProductModal from "@/components/Products/AddProductModal";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import Toast from "@/components/ui/Toast";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 import { FaPlusCircle } from "react-icons/fa";
 
 export default function ProductsAdminPage() {
@@ -14,7 +16,14 @@ export default function ProductsAdminPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [toast, setToast] = useState({ type: "", message: "" });
+  const [productToDelete, setProductToDelete] = useState(null);
   const router = useRouter();
+
+  const showToast = (type, message) => {
+    setToast({ type, message });
+    setTimeout(() => setToast({ type: "", message: "" }), 4000);
+  };
 
   useEffect(() => {
     if (!user || user.role !== "viverista" || !user.token) {
@@ -32,14 +41,13 @@ export default function ProductsAdminPage() {
   }, [user]);
 
   const handleDelete = async (productId) => {
-    if (confirm("¿Estás seguro de que deseas eliminar este producto?")) {
-      try {
-        await deleteProduct(productId, user.token);
-        setMyProducts((prev) => prev.filter((p) => p.id !== productId));
-      } catch (err) {
-        console.error("Error al eliminar producto:", err);
-        alert("No se pudo eliminar el producto. Intenta más tarde.");
-      }
+    try {
+      await deleteProduct(productId, user.token);
+      setMyProducts((prev) => prev.filter((p) => p.id !== productId));
+      showToast("success", "Producto eliminado correctamente.");
+    } catch (err) {
+      console.error("Error al eliminar producto:", err);
+      showToast("error", "No se pudo eliminar el producto.");
     }
   };
 
@@ -71,6 +79,14 @@ export default function ProductsAdminPage() {
           </button>
         </div>
 
+        {toast.message && (
+          <Toast
+            type={toast.type}
+            message={toast.message}
+            onClose={() => setToast({ type: "", message: "" })}
+          />
+        )}
+
         {loading ? (
           <div className="flex justify-center items-center py-10">
             <LoadingSpinner text="Cargando tus productos..." />
@@ -85,8 +101,8 @@ export default function ProductsAdminPage() {
               <ProductCard
                 key={product.id}
                 product={product}
-                onDelete={handleDelete}
                 onEdit={handleEdit}
+                onDelete={() => setProductToDelete(product.id)}
               />
             ))}
           </div>
@@ -105,6 +121,17 @@ export default function ProductsAdminPage() {
           setShowModal(false);
         }}
       />
+
+      {productToDelete && (
+        <ConfirmModal
+          message="¿Estás seguro de que deseas eliminar este producto?"
+          onConfirm={() => {
+            handleDelete(productToDelete);
+            setProductToDelete(null);
+          }}
+          onCancel={() => setProductToDelete(null)}
+        />
+      )}
     </DashboardLayout>
   );
 }

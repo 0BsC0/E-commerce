@@ -33,18 +33,35 @@ exports.createProduct = async (req, res) => {
   }
 };
 
-// Obtener todos los productos públicos
+// Obtener todos los productos públicos categorias y busqueda
 exports.getAllProducts = async (req, res) => {
+  const { category, search } = req.query;
+
   try {
     const products = await prisma.product.findMany({
+      where: {
+        AND: [
+          category ? { category: { equals: category, mode: 'insensitive' } } : {},
+          search
+            ? {
+                OR: [
+                  { name: { contains: search, mode: 'insensitive' } },
+                  { description: { contains: search, mode: 'insensitive' } }
+                ]
+              }
+            : {}
+        ]
+      },
       orderBy: { createdAt: 'desc' }
     });
+
     res.json(products);
   } catch (error) {
     console.error('Error al obtener productos:', error);
     res.status(500).json({ error: 'Error al obtener productos' });
   }
 };
+
 
 // Obtener un producto por ID
 exports.getProductById = async (req, res) => {
@@ -194,3 +211,26 @@ exports.getFeaturedProducts = async (req, res) => {
     res.status(500).json({ error: "Error al obtener productos destacados" });
   }
 };
+
+//Obtener las categorias 
+exports.getCategories = async (req, res) => {
+  try {
+    const categories = await prisma.product.findMany({
+      where: {
+        category: {
+          not: ''
+        }
+      },
+      distinct: ['category'],
+      select: { category: true }
+    });
+
+    const list = categories.map((c) => c.category).filter(Boolean); // limpia null o ''
+    res.json(list);
+  } catch (error) {
+    console.error('Error al obtener categorías:', error);
+    res.status(500).json({ error: 'Error al obtener categorías' });
+  }
+};
+
+
